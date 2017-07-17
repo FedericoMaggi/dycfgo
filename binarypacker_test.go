@@ -7,6 +7,7 @@
 package binarypacker
 
 import (
+	"encoding/hex"
 	"reflect"
 	"testing"
 )
@@ -216,4 +217,29 @@ func TestBoolArrayEncoding(t *testing.T) {
 	if reflect.DeepEqual(decoded.([]interface{}), referencerray) != true {
 		t.Fatalf("Decoded array is different from original: \"%v\" != \"%v\".\n", decoded.([]interface{}), referencerray)
 	}
+}
+
+const (
+	kCCompatibilityReference = "070000008f00000000000000000000001700000000000000546869732069732061207465737420737472696e672e00020000000800000000000000b0f7750400000000030000000800000000000000b61db3e061cbf63e0700000038000000000000000000000018000000000000005468697320697320616e6f7468657220737472696e672e00020000000800000000000000d78d7e0000000000"
+)
+
+func TestCCompatibility(t *testing.T) {
+	reference, err := hex.DecodeString(kCCompatibilityReference)
+	if err != nil {
+		t.Fatalf("Unable to decode hex string: %s.\n", err.Error())
+	}
+
+	decoded, err := Unmarshal(reference)
+	if err != nil {
+		t.Fatalf("Unable to decode binary representation: %s.\n", err.Error())
+	}
+	var val []interface{}
+	var ok bool
+	if val, ok = decoded.([]interface{}); !ok {
+		t.Fatalf("Unexpected type.\n")
+	}
+	if len(val) != 4 {
+		t.Fatalf("Unexpected size of decoded slice: having %d expecting %d.\n", len(val), 4)
+	}
+	t.Logf("Decoded from DYCF: %#v.\n", val)
 }
