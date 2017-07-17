@@ -81,6 +81,29 @@ func decode(data []byte) (*binaryPacket, error) {
 	return pack, nil
 }
 
+func getPacketMetadata(data []byte) (binaryType, int64, error) {
+	pack := &binaryPacket{}
+	minSize := (int(unsafe.Sizeof(pack.binaryType)) +
+		int(unsafe.Sizeof(pack.size)+1))
+	if len(data) < minSize {
+		return 0, 0, fmt.Errorf(
+			"data size is less than required, having %d expecting at least %d",
+			len(data),
+			minSize,
+		)
+	}
+	buf := bytes.NewReader(data)
+	err := binary.Read(buf, binary.LittleEndian, &pack.binaryType)
+	if err != nil {
+		return 0, 0, err
+	}
+	err = binary.Read(buf, binary.LittleEndian, &pack.size)
+	if err != nil {
+		return 0, 0, err
+	}
+	return pack.binaryType, pack.size, nil
+}
+
 func marshalNil() ([]byte, error) {
 	pack := &binaryPacket{
 		binaryType: kDYNullType,
@@ -92,6 +115,78 @@ func marshalNil() ([]byte, error) {
 
 func (p *binaryPacket) unmarshalNil() (interface{}, error) {
 	return nil, nil
+}
+
+func marshalArray(value []interface{}) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	for _, element := range value {
+		data, err := Marshal(element)
+		if err != nil {
+			return nil, err
+		}
+		_, err = buf.Write(data)
+		if err != nil {
+			return nil, err
+		}
+	}
+	pack := &binaryPacket{
+		binaryType: kDYArrayType,
+		size:       int64(buf.Len()),
+		data:       buf.Bytes(),
+	}
+	return pack.encode()
+}
+
+func marshalStringArray(value []string) ([]byte, error) {
+	converted := make([]interface{}, len(value))
+	for idx, element := range value {
+		converted[idx] = element
+	}
+	return marshalArray(converted)
+}
+
+func marshalIntegerArray(value []int64) ([]byte, error) {
+	converted := make([]interface{}, len(value))
+	for idx, element := range value {
+		converted[idx] = element
+	}
+	return marshalArray(converted)
+}
+
+func marshalFloatArray(value []float64) ([]byte, error) {
+	converted := make([]interface{}, len(value))
+	for idx, element := range value {
+		converted[idx] = element
+	}
+	return marshalArray(converted)
+}
+
+func marshalBoolArray(value []bool) ([]byte, error) {
+	converted := make([]interface{}, len(value))
+	for idx, element := range value {
+		converted[idx] = element
+	}
+	return marshalArray(converted)
+}
+
+func (p *binaryPacket) unmarshalArray() ([]interface{}, error) {
+	var readed int64
+	result := make([]interface{}, 0)
+	for readed < p.size {
+		decoded, err := Unmarshal(p.data[readed:])
+		if err != nil {
+			return nil, err
+		}
+		_, size, err := getPacketMetadata(p.data[readed:])
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, decoded)
+		readed += (size +
+			int64(unsafe.Sizeof(p.binaryType)) +
+			int64(unsafe.Sizeof(p.size)))
+	}
+	return result, nil
 }
 
 func marshalString(value string) ([]byte, error) {
@@ -219,7 +314,16 @@ func Marshal(value interface{}) ([]byte, error) {
 		return marshalFloat(value.(float64))
 	case []byte:
 		return marshalData(value.([]byte))
+	case []string:
+		return marshalStringArray(value.([]string))
+	case []int64:
+		return marshalIntegerArray(value.([]int64))
+	case []float64:
+		return marshalFloatArray(value.([]float64))
+	case []bool:
+		return marshalBoolArray(value.([]bool))
 	case []interface{}:
+		return marshalArray(value.([]interface{}))
 	case bool:
 		return marshalBool(value.(bool))
 	}
@@ -246,6 +350,7 @@ func Unmarshal(encoded []byte) (interface{}, error) {
 	case kDYRealType:
 		return pack.unmarshalFloat()
 	case kDYArrayType:
+		return pack.unmarshalArray()
 	case kDYBooleanType:
 		return pack.unmarshalBool()
 	}

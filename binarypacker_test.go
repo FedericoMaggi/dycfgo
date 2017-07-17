@@ -82,3 +82,138 @@ func TestDataEncoding(t *testing.T) {
 		t.Fatalf("Decoded data is different from original: \"%v\" != \"%v\".\n", decoded.([]byte), testData)
 	}
 }
+
+func TestArrayEncoding(t *testing.T) {
+	testArray := []interface{}{
+		"this", int64(563), "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]interface{}{"this", "is", "another",
+			"array"},
+	}
+
+	encoded, err := Marshal(testArray)
+	if err != nil {
+		t.Fatalf("Unexpected error encoding array: %s.\n", err.Error())
+	}
+	decoded, err := Unmarshal(encoded)
+	if err != nil {
+		t.Fatalf("Unexpected error decoding array: %s.\n", err.Error())
+	}
+	if reflect.DeepEqual(decoded.([]interface{}), testArray) != true {
+		t.Fatalf("Decoded array is different from original: \"%v\" != \"%v\".\n", decoded.([]interface{}), testArray)
+	}
+}
+
+func TestStringArrayEncoding(t *testing.T) {
+	testArray := []interface{}{
+		"this", 563, "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]string{"this", "is", "another",
+			"array"},
+	}
+	referencerray := []interface{}{
+		"this", int64(563), "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]interface{}{"this", "is", "another",
+			"array"},
+	}
+
+	encoded, err := Marshal(testArray)
+	if err != nil {
+		t.Fatalf("Unexpected error encoding array: %s.\n", err.Error())
+	}
+	decoded, err := Unmarshal(encoded)
+	if err != nil {
+		t.Fatalf("Unexpected error decoding array: %s.\n", err.Error())
+	}
+	if reflect.DeepEqual(decoded.([]interface{}), referencerray) != true {
+		t.Fatalf("Decoded array is different from original: \"%v\" != \"%v\".\n", decoded.([]interface{}), referencerray)
+	}
+}
+
+func TestIntegerArrayEncoding(t *testing.T) {
+	testArray := []interface{}{
+		"this", 563, "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]int64{5, 10, 67, 48576, 37362},
+	}
+	referencerray := []interface{}{
+		"this", int64(563), "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]interface{}{int64(5), int64(10), int64(67),
+			int64(48576), int64(37362)},
+	}
+
+	encoded, err := Marshal(testArray)
+	if err != nil {
+		t.Fatalf("Unexpected error encoding array: %s.\n", err.Error())
+	}
+	decoded, err := Unmarshal(encoded)
+	if err != nil {
+		t.Fatalf("Unexpected error decoding array: %s.\n", err.Error())
+	}
+	if reflect.DeepEqual(decoded.([]interface{}), referencerray) != true {
+		t.Fatalf("Decoded array is different from original: \"%v\" != \"%v\".\n", decoded.([]interface{}), referencerray)
+	}
+}
+
+func TestFloatArrayEncoding(t *testing.T) {
+	testArray := []interface{}{
+		"this", 563, "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]float64{5.182, 10.283, 67.8, 48576.2387746,
+			37362.38374},
+	}
+	referencerray := []interface{}{
+		"this", int64(563), "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]interface{}{5.182, 10.283, 67.8, 48576.2387746,
+			37362.38374},
+	}
+
+	encoded, err := Marshal(testArray)
+	if err != nil {
+		t.Fatalf("Unexpected error encoding array: %s.\n", err.Error())
+	}
+	decoded, err := Unmarshal(encoded)
+	if err != nil {
+		t.Fatalf("Unexpected error decoding array: %s.\n", err.Error())
+	}
+	if reflect.DeepEqual(decoded.([]interface{}), referencerray) != true {
+		t.Fatalf("Decoded array is different from original: \"%v\" != \"%v\".\n", decoded.([]interface{}), referencerray)
+	}
+}
+
+func TestBoolArrayEncoding(t *testing.T) {
+	testArray := []interface{}{
+		"this", 563, "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]bool{true, false, true, true},
+	}
+	referencerray := []interface{}{
+		"this", int64(563), "is", 5.3847654, "a",
+		[]byte{0x2B, 0xF, 0x56, 0x2F, 0x4C},
+		"test", "array", true, nil, int64(53),
+		[]interface{}{true, false, true, true},
+	}
+
+	encoded, err := Marshal(testArray)
+	if err != nil {
+		t.Fatalf("Unexpected error encoding array: %s.\n", err.Error())
+	}
+	decoded, err := Unmarshal(encoded)
+	if err != nil {
+		t.Fatalf("Unexpected error decoding array: %s.\n", err.Error())
+	}
+	if reflect.DeepEqual(decoded.([]interface{}), referencerray) != true {
+		t.Fatalf("Decoded array is different from original: \"%v\" != \"%v\".\n", decoded.([]interface{}), referencerray)
+	}
+}
