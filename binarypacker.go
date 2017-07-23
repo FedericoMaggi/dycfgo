@@ -70,6 +70,12 @@ func decode(data []byte) (*binaryPacket, error) {
 	if err != nil {
 		return nil, err
 	}
+	if pack.size > int64(len(data)) {
+		return nil, fmt.Errorf(
+			"Invalid readed size %d > than encoded size %d",
+			pack.size, len(data),
+		)
+	}
 	pack.data = make([]byte, pack.size)
 	var idx int64
 	for idx = 0; idx < pack.size; idx++ {
@@ -337,6 +343,11 @@ func Unmarshal(encoded []byte) (interface{}, error) {
 	pack, err := decode(encoded)
 	if err != nil {
 		return nil, err
+	}
+	if pack.size == 0 {
+		return nil, fmt.Errorf(
+			"unsupported empty packet, unable to decode",
+		)
 	}
 	switch pack.binaryType {
 	case kDYStringType:
